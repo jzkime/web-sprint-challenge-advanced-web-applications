@@ -12,16 +12,12 @@ import { axiosWithAuth } from '../axios'
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
 
-const initialArticleShape = null
-
 export default function App() {
   // ✨ MVP can be achieved with these states
   const [message, setMessage] = useState('')
   const [articles, setArticles] = useState([])
   const [currentArticleId, setCurrentArticleId] = useState()
   const [spinnerOn, setSpinnerOn] = useState(false)
-
-  const [ currentArticle, setCurrentArticle ] = useState(initialArticleShape)
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
@@ -50,17 +46,15 @@ export default function App() {
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
     // to the Articles screen. Don't forget to turn off the spinner!
-    setMessage('')
     setSpinnerOn(true)
     axios.post(loginUrl, {username: username, password: password})
       .then(res => {
         localStorage.setItem("token", res.data.token);
         setMessage(res.data.message);
-        redirectToArticles();
+        redirectToArticles()
+        setSpinnerOn(false)
       })
       .catch(err => console.error(err))
-      .finally(setSpinnerOn(false));
-    
   }
 
   const getArticles = () => {
@@ -120,15 +114,6 @@ export default function App() {
       .catch(err => console.error(err))
   }
 
-
-  useEffect(() => {
-    if(!currentArticleId) return setCurrentArticle(null);
-      const findArt = articles.find(ar => {
-      return ar.article_id === currentArticleId
-    })
-    setCurrentArticle(findArt)
-  }, [currentArticleId])
-
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <>
@@ -142,14 +127,14 @@ export default function App() {
           <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
         </nav>
         <Routes>
-          <Route path="/" element={<LoginForm login={login} />} />
+          <Route path="/" element={<LoginForm login={login} setSpinnerOn={setSpinnerOn} />} />
           <Route path="articles" element={
             <PrivateRoute>
 
               <ArticleForm 
                 articles={articles} 
                 setCurrentArticleId={setCurrentArticleId} 
-                currentArticle={currentArticle} 
+                currentArticle={articles.find(ar => ar.article_id === currentArticleId)} 
                 postArticle={postArticle} 
                 updateArticle={updateArticle} 
                 />
